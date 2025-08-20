@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Calendar, FileText, Download, Filter, Search } from 'lucide-react';
+import { Calendar, FileText, Download, Filter, Search, BarChart3 } from 'lucide-react';
 import { ExportModal } from './ExportModal';
+import { AdvancedChartView } from './AdvancedChartView';
 
 interface Report {
   id: string;
@@ -93,6 +94,11 @@ export const ReportViewer: React.FC = () => {
         <div className="space-y-6">
           <div>
             <h3 className="text-lg font-semibold text-slate-800 mb-3">1. Macroeconomic Overview</h3>
+            
+            <div className="mb-6">
+              <AdvancedChartView symbol="SPY" height={300} />
+            </div>
+            
             <p className="text-slate-700 mb-4">
               Current economic indicators suggest a cautious but stable environment. Q2 GDP growth at 3.0% 
               indicates continued expansion, though consumer confidence at 58.6 reflects underlying sentiment concerns.
@@ -130,6 +136,11 @@ export const ReportViewer: React.FC = () => {
 
           <div>
             <h3 className="text-lg font-semibold text-slate-800 mb-3">2. Technical Analysis</h3>
+            
+            <div className="mb-6">
+              <AdvancedChartView symbol="NVDA" height={250} />
+            </div>
+            
             <p className="text-slate-700 mb-4">
               S&P futures trading at 6,463 show consolidation patterns. RSI at neutral levels (~50) 
               suggests balanced momentum, while MACD indicates potential bearish divergence.
@@ -170,6 +181,9 @@ export const ReportViewer: React.FC = () => {
         <div className="space-y-4">
           <div className="bg-green-50 border-l-4 border-green-400 p-4">
             <h4 className="font-semibold text-green-800 mb-2">Short-Term (Intraday)</h4>
+            <div className="mb-3">
+              <AdvancedChartView symbol="BTC-USD" height={200} />
+            </div>
             <ul className="text-sm text-green-700 space-y-1">
               <li>• Monitor S&P support at 6,420; consider protective puts if breached</li>
               <li>• NVDA bull call spread if price exceeds $130 with volume confirmation</li>
