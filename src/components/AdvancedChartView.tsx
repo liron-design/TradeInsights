@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, CandlestickChart, ReferenceLine } from 'recharts';
 import { marketDataService, HistoricalDataPoint } from '../services/marketDataService';
 import { format } from 'date-fns';
-import { TrendingUp, BarChart3, Candlestick } from 'lucide-react';
+import { TrendingUp, BarChart3, CandlestickChart as Candlestick } from 'lucide-react';
 
 interface AdvancedChartViewProps {
   symbol: string;
