@@ -10,8 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.85.5",
     "date-fns": "^4.1.0",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^0.540.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-query": "^3.39.3",
