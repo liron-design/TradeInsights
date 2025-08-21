@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { NotificationSystem } from './components/NotificationSystem';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { ReportViewer } from './components/ReportViewer';
@@ -6,12 +8,33 @@ import { Settings } from './components/Settings';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ReportProvider } from './contexts/ReportContext';
 import { VoiceCommands } from './components/VoiceCommands';
+import { loadSettings, saveSettings, UserSettings } from './utils/storage';
 
 type View = 'dashboard' | 'reports' | 'settings';
 
 function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [settings, setSettings] = useState<UserSettings>(loadSettings());
+  const [voiceEnabled, setVoiceEnabled] = useState(settings.preferences.voiceMode);
+
+  // Save settings when they change
+  useEffect(() => {
+    saveSettings(settings);
+  }, [settings]);
+
+  // Listen for voice toggle events from settings
+  useEffect(() => {
+    const handleVoiceToggle = (event: CustomEvent) => {
+      setVoiceEnabled(event.detail);
+      setSettings(prev => ({
+        ...prev,
+        preferences: { ...prev.preferences, voiceMode: event.detail }
+      }));
+    };
+
+    window.addEventListener('voiceToggle', handleVoiceToggle as EventListener);
+    return () => window.removeEventListener('voiceToggle', handleVoiceToggle as EventListener);
+  }, []);
 
   const handleVoiceCommand = (command: string) => {
     switch (command) {
@@ -45,12 +68,18 @@ function App() {
   };
 
   return (
+    <ErrorBoundary>
     <NotificationProvider>
       <ReportProvider>
-        <div className="min-h-screen bg-slate-50">
+        <div className={`min-h-screen transition-colors duration-200 ${
+          settings.preferences.darkMode ? 'bg-slate-900' : 'bg-slate-50'
+        }`}>
           <Header currentView={currentView} onViewChange={setCurrentView} />
+          <NotificationSystem />
           <main className="pb-20 md:pb-0">
-            {renderView()}
+            <div className={settings.preferences.compactView ? 'compact-view' : ''}>
+              {renderView()}
+            </div>
           </main>
           <VoiceCommands 
             onCommand={handleVoiceCommand}
@@ -59,6 +88,7 @@ function App() {
         </div>
       </ReportProvider>
     </NotificationProvider>
+    </ErrorBoundary>
   );
 }
 

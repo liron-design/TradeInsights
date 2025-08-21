@@ -8,6 +8,7 @@ import { SentimentMeter } from './SentimentMeter';
 import { ReportPreview } from './ReportPreview';
 import { InteractiveChart } from './InteractiveChart';
 import { AIAnalysisEngine } from './AIAnalysisEngine';
+import { ScheduledReportManager } from './ScheduledReportManager';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -30,6 +31,10 @@ export const Dashboard: React.FC = () => {
 
       <div className="mb-8">
         <ComprehensiveReportGenerator />
+      </div>
+
+      <div className="mb-8">
+        <ScheduledReportManager />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

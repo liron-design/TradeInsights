@@ -1,30 +1,15 @@
 import React, { useState } from 'react';
 import { Bell, Clock, Target, Globe, User, Shield, Download } from 'lucide-react';
+import { loadSettings, saveSettings, UserSettings, ValidationUtils } from '../utils/storage';
+import { useNotifications } from '../contexts/NotificationContext';
 
 export const Settings: React.FC = () => {
-  const [settings, setSettings] = useState({
-    notifications: {
-      preMarket: true,
-      preClose: true,
-      customAlerts: true,
-      email: true,
-      push: true
-    },
-    reporting: {
-      market: 'US Equities',
-      focusTickers: 'NVDA, TSLA, AAPL',
-      timeHorizon: 'Mixed',
-      weekendReports: false
-    },
-    preferences: {
-      voiceMode: false,
-      darkMode: false,
-      compactView: false,
-      autoRefresh: true
-    }
-  });
+  const { addNotification } = useNotifications();
+  const [settings, setSettings] = useState<UserSettings>(loadSettings());
+  const [hasChanges, setHasChanges] = useState(false);
 
   const handleToggle = (section: string, key: string) => {
+    setHasChanges(true);
     setSettings(prev => ({
       ...prev,
       [section]: {
@@ -35,13 +20,76 @@ export const Settings: React.FC = () => {
   };
 
   const handleInputChange = (section: string, key: string, value: string) => {
+    let validatedValue = value;
+    
+    // Validate inputs
+    if (key === 'focusTickers') {
+      const tickers = ValidationUtils.validateTickerList(value);
+      validatedValue = tickers.join(', ');
+    } else if (key === 'market' && !ValidationUtils.validateMarket(value)) {
+      return; // Invalid market
+    } else if (key === 'timeHorizon' && !ValidationUtils.validateTimeHorizon(value)) {
+      return; // Invalid time horizon
+    }
+    
+    setHasChanges(true);
     setSettings(prev => ({
       ...prev,
       [section]: {
         ...prev[section as keyof typeof prev],
-        [key]: value
+        [key]: validatedValue
       }
     }));
+  };
+
+  const handleSave = () => {
+    const success = saveSettings(settings);
+    if (success) {
+      setHasChanges(false);
+      addNotification({
+        type: 'success',
+        title: 'Settings Saved',
+        message: 'Your preferences have been saved successfully.'
+      });
+    } else {
+      addNotification({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Failed to save settings. Please try again.'
+      });
+    }
+  };
+
+  const handleReset = () => {
+    const defaultSettings = {
+      notifications: {
+        preMarket: true,
+        preClose: true,
+        customAlerts: true,
+        email: true,
+        push: true
+      },
+      reporting: {
+        market: 'US Equities',
+        focusTickers: 'NVDA, TSLA, AAPL',
+        timeHorizon: 'Mixed',
+        weekendReports: false
+      },
+      preferences: {
+        voiceMode: false,
+        darkMode: false,
+        compactView: false,
+        autoRefresh: true
+      }
+    };
+    
+    setSettings(defaultSettings);
+    setHasChanges(true);
+    addNotification({
+      type: 'info',
+      title: 'Settings Reset',
+      message: 'Settings have been reset to defaults. Click Save to apply.'
+    });
   };
 
   return (
@@ -313,9 +361,18 @@ export const Settings: React.FC = () => {
 
       <div className="mt-8 flex justify-end space-x-4">
         <button className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+          onClick={handleReset}
           Reset to Defaults
         </button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button 
+          onClick={handleSave}
+          disabled={!hasChanges}
+          className={`px-6 py-2 rounded-lg transition-colors ${
+            hasChanges 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+              : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+          }`}
+        >
           Save Settings
         </button>
       </div>
