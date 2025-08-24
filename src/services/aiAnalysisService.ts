@@ -1,4 +1,5 @@
 import { MarketDataPoint } from './marketDataService';
+import { format } from 'date-fns';
 
 export interface AIAnalysis {
   symbol: string;
