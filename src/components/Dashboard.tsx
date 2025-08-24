@@ -9,6 +9,8 @@ import { ReportPreview } from './ReportPreview';
 import { InteractiveChart } from './InteractiveChart';
 import { AIAnalysisEngine } from './AIAnalysisEngine';
 import { ScheduledReportManager } from './ScheduledReportManager';
+import { PortfolioTracker } from './PortfolioTracker';
+import { AlertsManager } from './AlertsManager';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -35,6 +37,11 @@ export const Dashboard: React.FC = () => {
 
       <div className="mb-8">
         <ScheduledReportManager />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <PortfolioTracker />
+        <AlertsManager />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

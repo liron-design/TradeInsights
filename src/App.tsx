@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { NotificationSystem } from './components/NotificationSystem';
-import { Header } from './components/Header';
+import { MobileOptimizedHeader } from './components/MobileOptimizedHeader';
 import { Dashboard } from './components/Dashboard';
 import { ReportViewer } from './components/ReportViewer';
 import { Settings } from './components/Settings';
@@ -74,7 +74,7 @@ function App() {
         <div className={`min-h-screen transition-colors duration-200 ${
           settings.preferences.darkMode ? 'bg-slate-900' : 'bg-slate-50'
         }`}>
-          <Header currentView={currentView} onViewChange={setCurrentView} />
+          <MobileOptimizedHeader currentView={currentView} onViewChange={setCurrentView} />
           <NotificationSystem />
           <main className="pb-20 md:pb-0">
             <div className={settings.preferences.compactView ? 'compact-view' : ''}>

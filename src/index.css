@@ -47,22 +47,84 @@ textarea:focus-visible {
 }
 
 /* Dark mode support */
-.dark {
+.dark,
+[data-theme="dark"] {
   @apply bg-slate-900 text-white;
 }
 
-.dark .bg-white {
+.dark .bg-white,
+[data-theme="dark"] .bg-white {
   @apply bg-slate-800 text-white;
 }
 
-.dark .text-slate-900 {
+.dark .text-slate-900,
+[data-theme="dark"] .text-slate-900 {
   @apply text-white;
 }
 
-.dark .text-slate-600 {
+.dark .text-slate-600,
+[data-theme="dark"] .text-slate-600 {
   @apply text-slate-300;
 }
 
-.dark .border-slate-200 {
+.dark .border-slate-200,
+[data-theme="dark"] .border-slate-200 {
   @apply border-slate-700;
+}
+
+/* Enhanced mobile touch targets */
+@media (max-width: 768px) {
+  button, 
+  input, 
+  select, 
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .touch-target {
+    padding: 12px;
+  }
+}
+
+/* Improved scrolling on mobile */
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .overflow-x-auto::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* PWA optimizations */
+@media (display-mode: standalone) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
