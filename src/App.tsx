@@ -5,12 +5,14 @@ import { MobileOptimizedHeader } from './components/MobileOptimizedHeader';
 import { Dashboard } from './components/Dashboard';
 import { ReportViewer } from './components/ReportViewer';
 import { Settings } from './components/Settings';
+import { SecurityEnhancements } from './components/SecurityEnhancements';
+import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ReportProvider } from './contexts/ReportContext';
 import { VoiceCommands } from './components/VoiceCommands';
 import { loadSettings, saveSettings, UserSettings } from './utils/storage';
 
-type View = 'dashboard' | 'reports' | 'settings';
+type View = 'dashboard' | 'reports' | 'settings' | 'security' | 'performance';
 
 function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -62,6 +64,10 @@ function App() {
         return <ReportViewer />;
       case 'settings':
         return <Settings />;
+      case 'security':
+        return <SecurityEnhancements />;
+      case 'performance':
+        return <PerformanceMonitor />;
       default:
         return <Dashboard />;
     }
