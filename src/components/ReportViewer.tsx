@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, FileText, Download, Filter, Search, BarChart3 } from 'lucide-react';
 import { ExportModal } from './ExportModal';
-import { AdvancedChartView } from './AdvancedChartView';
 
 interface Report {
   id: string;
@@ -96,7 +95,10 @@ export const ReportViewer: React.FC = () => {
             <h3 className="text-lg font-semibold text-slate-800 mb-3">1. Macroeconomic Overview</h3>
             
             <div className="mb-6">
-              <AdvancedChartView symbol="SPY" height={300} />
+              <div className="bg-slate-100 rounded-lg p-8 text-center">
+                <BarChart3 className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                <p className="text-slate-600">S&P 500 Performance Chart</p>
+              </div>
             </div>
             
             <p className="text-slate-700 mb-4">
@@ -138,7 +140,10 @@ export const ReportViewer: React.FC = () => {
             <h3 className="text-lg font-semibold text-slate-800 mb-3">2. Technical Analysis</h3>
             
             <div className="mb-6">
-              <AdvancedChartView symbol="NVDA" height={250} />
+              <div className="bg-slate-100 rounded-lg p-8 text-center">
+                <BarChart3 className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                <p className="text-slate-600">NVIDIA Technical Analysis Chart</p>
+              </div>
             </div>
             
             <p className="text-slate-700 mb-4">
@@ -182,7 +187,10 @@ export const ReportViewer: React.FC = () => {
           <div className="bg-green-50 border-l-4 border-green-400 p-4">
             <h4 className="font-semibold text-green-800 mb-2">Short-Term (Intraday)</h4>
             <div className="mb-3">
-              <AdvancedChartView symbol="BTC-USD" height={200} />
+              <div className="bg-slate-100 rounded-lg p-6 text-center">
+                <BarChart3 className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                <p className="text-slate-600 text-sm">Bitcoin Price Action</p>
+              </div>
             </div>
             <ul className="text-sm text-green-700 space-y-1">
               <li>• Monitor S&P support at 6,420; consider protective puts if breached</li>
