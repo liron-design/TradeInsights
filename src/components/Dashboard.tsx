@@ -1,5 +1,6 @@
 import React from 'react';
-import { AdvancedDashboard } from './AdvancedDashboard';
+import { InstitutionalDashboard } from './InstitutionalDashboard';
+import { AdvancedAnalyticsEngine } from './AdvancedAnalyticsEngine';
 import { AdvancedChartView } from './AdvancedChartView';
 import { OptionsFlowAnalyzer } from './OptionsFlowAnalyzer';
 import { PortfolioTracker } from './PortfolioTracker';
@@ -8,7 +9,8 @@ import { AlertsManager } from './AlertsManager';
 export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-8">
-      <AdvancedDashboard />
+      <InstitutionalDashboard />
+      <AdvancedAnalyticsEngine />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
