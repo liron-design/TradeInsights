@@ -5,6 +5,8 @@ import { AdvancedChartView } from './AdvancedChartView';
 import { OptionsFlowAnalyzer } from './OptionsFlowAnalyzer';
 import { PortfolioTracker } from './PortfolioTracker';
 import { AlertsManager } from './AlertsManager';
+import { ScheduledReportManager } from './ScheduledReportManager';
+import { ComprehensiveReportGenerator } from './ComprehensiveReportGenerator';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -23,9 +25,14 @@ export const Dashboard: React.FC = () => {
           <OptionsFlowAnalyzer symbol="NVDA" />
         </div>
         
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
           <PortfolioTracker />
           <AlertsManager />
+        </div>
+        
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          <ScheduledReportManager />
+          <ComprehensiveReportGenerator />
         </div>
       </div>
     </div>
