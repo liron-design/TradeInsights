@@ -153,6 +153,8 @@ class EnhancedMarketDataService {
     const recent = history.slice(-10);
     const older = history.slice(-20, -10);
     
+    if (older.length === 0) return 0;
+    
     const recentAvg = recent.reduce((sum, price) => sum + price, 0) / recent.length;
     const olderAvg = older.reduce((sum, price) => sum + price, 0) / older.length;
     
@@ -164,7 +166,7 @@ class EnhancedMarketDataService {
     if (symbol === 'NVDA' || symbol === 'AAPL') {
       // Tech stocks correlate with each other
       const spyHistory = this.priceHistory.get('SPY') || [];
-      if (spyHistory.length > 0) {
+      if (spyHistory.length > 1) {
         const spyChange = spyHistory[spyHistory.length - 1] - spyHistory[spyHistory.length - 2];
         return spyChange * 0.3; // 30% correlation
       }
@@ -441,11 +443,11 @@ class EnhancedMarketDataService {
     ];
 
     return baseData.map(item => {
+      const priceHistory = this.priceHistory.get(item.symbol) || [item.basePrice];
       const newPrice = this.generateRealisticPrice(item.symbol, item.basePrice, item.volatility);
       const priceChange = newPrice - item.basePrice;
       const changePercent = (priceChange / item.basePrice) * 100;
       
-      const priceHistory = this.priceHistory.get(item.symbol) || [item.basePrice];
       const technicals = this.calculateTechnicalIndicators(priceHistory);
       
       // Generate sentiment data

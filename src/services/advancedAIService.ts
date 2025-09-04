@@ -202,59 +202,6 @@ class AdvancedAIService {
     return Math.max(0, Math.min(100, score));
   }
 
-  // Market regime detection
-  private detectMarketRegime(data: EnhancedMarketDataPoint[]): MarketRegimeAnalysis {
-    const spyData = data.find(d => d.symbol === 'SPY');
-    if (!spyData) {
-      return {
-        regime: 'sideways',
-        confidence: 50,
-        duration: 'Unknown',
-        characteristics: ['Insufficient data'],
-        recommendations: ['Gather more market data']
-      };
-    }
-
-    const { technicals, changePercent } = spyData;
-    let regime: MarketRegimeAnalysis['regime'] = 'sideways';
-    let confidence = 50;
-    const characteristics: string[] = [];
-    const recommendations: string[] = [];
-
-    // Trend analysis
-    if (technicals.sma20 > technicals.sma50 && technicals.sma50 > technicals.sma200) {
-      regime = 'bull_market';
-      confidence += 20;
-      characteristics.push('Strong uptrend in moving averages');
-      recommendations.push('Consider growth stocks and momentum strategies');
-    } else if (technicals.sma20 < technicals.sma50 && technicals.sma50 < technicals.sma200) {
-      regime = 'bear_market';
-      confidence += 20;
-      characteristics.push('Strong downtrend in moving averages');
-      recommendations.push('Consider defensive positions and hedging');
-    }
-
-    // Volatility analysis
-    if (technicals.atr > spyData.price * 0.03) {
-      if (regime === 'sideways') regime = 'volatile';
-      characteristics.push('High volatility environment');
-      recommendations.push('Use smaller position sizes and wider stops');
-    }
-
-    // Recent performance
-    if (Math.abs(changePercent) > 2) {
-      characteristics.push(`Strong recent ${changePercent > 0 ? 'upward' : 'downward'} movement`);
-    }
-
-    return {
-      regime,
-      confidence: Math.min(95, confidence),
-      duration: 'Current',
-      characteristics,
-      recommendations
-    };
-  }
-
   // Generate trading strategies based on analysis
   private generateStrategies(analysis: AdvancedAIAnalysis, data: EnhancedMarketDataPoint): AdvancedAIAnalysis['strategies'] {
     const strategies: AdvancedAIAnalysis['strategies'] = [];
@@ -532,7 +479,7 @@ class AdvancedAIService {
     // Beta calculation (vs SPY)
     const spyAsset = portfolio.find(asset => asset.symbol === 'SPY');
     const marketReturn = spyAsset ? spyAsset.changePercent / 100 : 0;
-    const beta = portfolioReturn / marketReturn || 1;
+    const beta = marketReturn !== 0 ? portfolioReturn / marketReturn : 1;
 
     return {
       portfolioVaR: Number((portfolioVaR * 100).toFixed(2)),

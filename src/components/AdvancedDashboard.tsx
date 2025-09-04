@@ -92,7 +92,7 @@ export const AdvancedDashboard: React.FC = () => {
             <span className="text-sm font-medium text-blue-600">AI Confidence</span>
           </div>
           <div className="text-2xl font-bold text-slate-900">
-            {Math.round(aiAnalyses.reduce((sum, a) => sum + a.confidence, 0) / aiAnalyses.length)}%
+            {aiAnalyses.length > 0 ? Math.round(aiAnalyses.reduce((sum, a) => sum + a.confidence, 0) / aiAnalyses.length) : 0}%
           </div>
           <div className="text-sm text-slate-500">Average across all symbols</div>
         </div>
@@ -114,7 +114,7 @@ export const AdvancedDashboard: React.FC = () => {
             <span className="text-sm font-medium text-purple-600">Portfolio VaR</span>
           </div>
           <div className="text-2xl font-bold text-slate-900">
-            {riskMetrics?.portfolioVaR.toFixed(2)}%
+            {riskMetrics?.portfolioVaR.toFixed(2) || '0.00'}%
           </div>
           <div className="text-sm text-slate-500">95% confidence, 1-day</div>
         </div>
@@ -125,7 +125,7 @@ export const AdvancedDashboard: React.FC = () => {
             <span className="text-sm font-medium text-orange-600">Sharpe Ratio</span>
           </div>
           <div className="text-2xl font-bold text-slate-900">
-            {riskMetrics?.sharpeRatio.toFixed(2)}
+            {riskMetrics?.sharpeRatio.toFixed(2) || '0.00'}
           </div>
           <div className="text-sm text-slate-500">Risk-adjusted returns</div>
         </div>

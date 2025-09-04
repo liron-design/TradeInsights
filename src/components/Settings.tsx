@@ -348,6 +348,7 @@ export const Settings: React.FC = () => {
             </button>
 
             <button className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-red-600">
+              onClick={handleReset}
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">Clear All Data</h4>
