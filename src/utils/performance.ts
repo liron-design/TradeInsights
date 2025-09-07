@@ -1,4 +1,6 @@
 // Advanced performance optimization utilities
+import React from 'react';
+
 export class PerformanceOptimizer {
   private static performanceEntries: PerformanceEntry[] = [];
   private static memoryBaseline: number = 0;
@@ -73,28 +75,30 @@ export class PerformanceOptimizer {
 
   private static setupRenderTracking(): void {
     // Track component render times
-    const originalRender = React.Component.prototype.render;
+    if (typeof React !== 'undefined' && React.Component) {
+      const originalRender = React.Component.prototype.render;
     
-    React.Component.prototype.render = function() {
-      const start = performance.now();
-      const result = originalRender.call(this);
-      const end = performance.now();
+      React.Component.prototype.render = function() {
+        const start = performance.now();
+        const result = originalRender.call(this);
+        const end = performance.now();
       
-      const componentName = this.constructor.name;
-      const renderTime = end - start;
+        const componentName = this.constructor.name;
+        const renderTime = end - start;
       
-      if (renderTime > 16.67) { // Slower than 60fps
-        console.warn(`Slow render in ${componentName}: ${renderTime.toFixed(2)}ms`);
-      }
+        if (renderTime > 16.67) { // Slower than 60fps
+          console.warn(`Slow render in ${componentName}: ${renderTime.toFixed(2)}ms`);
+        }
       
-      // Track render metrics
-      const metrics = this.renderMetrics.get(componentName) || [];
-      metrics.push(renderTime);
-      if (metrics.length > 100) metrics.shift(); // Keep last 100 renders
-      this.renderMetrics.set(componentName, metrics);
+        // Track render metrics
+        const metrics = PerformanceOptimizer.renderMetrics.get(componentName) || [];
+        metrics.push(renderTime);
+        if (metrics.length > 100) metrics.shift(); // Keep last 100 renders
+        PerformanceOptimizer.renderMetrics.set(componentName, metrics);
       
-      return result;
-    };
+        return result;
+      };
+    }
   }
 
   // Debounce utility for performance optimization
