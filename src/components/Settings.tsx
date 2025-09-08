@@ -349,6 +349,7 @@ export const Settings: React.FC = () => {
 
             <button className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-red-600">
               onClick={handleReset}
+              onClick={handleReset}
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">Clear All Data</h4>
@@ -362,6 +363,7 @@ export const Settings: React.FC = () => {
 
       <div className="mt-8 flex justify-end space-x-4">
         <button className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+          onClick={handleReset}
           onClick={handleReset}
           Reset to Defaults
         </button>

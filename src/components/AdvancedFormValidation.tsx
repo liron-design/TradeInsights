@@ -42,8 +42,7 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
     register,
     handleSubmit,
     formState: { errors, isValid, isSubmitting },
-    watch,
-    setValue
+    watch
   } = useForm<AlertFormData>({
     resolver: zodResolver(alertSchema),
     mode: 'onChange'
@@ -51,19 +50,6 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
 
   const watchedSymbol = watch('symbol');
   const watchedValue = watch('value');
-
-  // Real-time symbol validation
-  const validateSymbol = async (symbol: string) => {
-    if (!symbol) return;
-    
-    // Simulate API call to validate symbol
-    const validSymbols = ['SPY', 'NVDA', 'TSLA', 'AAPL', 'BTC-USD', 'ETH-USD', 'QQQ', 'MSFT'];
-    const isValid = validSymbols.includes(symbol.toUpperCase());
-    
-    if (!isValid) {
-      return 'Symbol not found in our database';
-    }
-  };
 
   const getFieldError = (fieldName: keyof AlertFormData) => {
     return errors[fieldName]?.message;

@@ -1,5 +1,4 @@
 // Advanced performance optimization utilities
-import React from 'react';
 
 export class PerformanceOptimizer {
   private static performanceEntries: PerformanceEntry[] = [];
@@ -75,29 +74,9 @@ export class PerformanceOptimizer {
 
   private static setupRenderTracking(): void {
     // Track component render times
-    if (typeof React !== 'undefined' && React.Component) {
-      const originalRender = React.Component.prototype.render;
-    
-      React.Component.prototype.render = function() {
-        const start = performance.now();
-        const result = originalRender.call(this);
-        const end = performance.now();
-      
-        const componentName = this.constructor.name;
-        const renderTime = end - start;
-      
-        if (renderTime > 16.67) { // Slower than 60fps
-          console.warn(`Slow render in ${componentName}: ${renderTime.toFixed(2)}ms`);
-        }
-      
-        // Track render metrics
-        const metrics = PerformanceOptimizer.renderMetrics.get(componentName) || [];
-        metrics.push(renderTime);
-        if (metrics.length > 100) metrics.shift(); // Keep last 100 renders
-        PerformanceOptimizer.renderMetrics.set(componentName, metrics);
-      
-        return result;
-      };
+    // React render tracking is handled by React DevTools in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Performance tracking enabled - use React DevTools Profiler for detailed analysis');
     }
   }
 

@@ -167,11 +167,11 @@ export const useAdvancedPerformance = (
   const throttle = useCallback(<T extends (...args: any[]) => any>(
     func: T,
     delay: number
-  ): T => {
+  ): ((...args: Parameters<T>) => void) => {
     let timeoutId: NodeJS.Timeout;
     let lastExecTime = 0;
     
-    return ((...args: any[]) => {
+    return ((...args: Parameters<T>) => {
       const currentTime = Date.now();
       
       if (currentTime - lastExecTime > delay) {
@@ -184,19 +184,19 @@ export const useAdvancedPerformance = (
           lastExecTime = Date.now();
         }, delay - (currentTime - lastExecTime));
       }
-    }) as T;
+    });
   }, []);
 
   const debounce = useCallback(<T extends (...args: any[]) => any>(
     func: T,
     delay: number
-  ): T => {
+  ): ((...args: Parameters<T>) => void) => {
     let timeoutId: NodeJS.Timeout;
     
-    return ((...args: any[]) => {
+    return ((...args: Parameters<T>) => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => func(...args), delay);
-    }) as T;
+    });
   }, []);
 
   return {
