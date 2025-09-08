@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface DataRow {
@@ -24,13 +23,25 @@ export const VirtualizedDataTable: React.FC<VirtualizedDataTableProps> = ({
   onRowClick
 }) => {
   const parentRef = React.useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = React.useState(0);
+  const [containerHeight, setContainerHeight] = React.useState(height);
 
-  const rowVirtualizer = useVirtualizer({
-    count: data.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 60,
-    overscan: 5,
-  });
+  // Simple virtualization implementation
+  const itemHeight = 60;
+  const overscan = 5;
+  const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+  const endIndex = Math.min(data.length, startIndex + Math.ceil(containerHeight / itemHeight) + overscan * 2);
+  const visibleItems = data.slice(startIndex, endIndex);
+  const totalHeight = data.length * itemHeight;
+  const offsetY = startIndex * itemHeight;
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  };
+
+  React.useEffect(() => {
+    setContainerHeight(height);
+  }, [height]);
 
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -67,28 +78,29 @@ export const VirtualizedDataTable: React.FC<VirtualizedDataTableProps> = ({
       {/* Virtualized Rows */}
       <div
         ref={parentRef}
+        onScroll={handleScroll}
         className="overflow-auto"
         style={{ height: `${height}px` }}
       >
         <div
           style={{
-            height: `${rowVirtualizer.getTotalSize()}px`,
+            height: `${totalHeight}px`,
             width: '100%',
             position: 'relative',
           }}
         >
-          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-            const row = data[virtualItem.index];
+          {visibleItems.map((row, index) => {
+            const actualIndex = startIndex + index;
             return (
               <div
-                key={virtualItem.key}
+                key={row.symbol}
                 style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
                   width: '100%',
-                  height: `${virtualItem.size}px`,
-                  transform: `translateY(${virtualItem.start}px)`,
+                  height: `${itemHeight}px`,
+                  transform: `translateY(${offsetY + index * itemHeight}px)`,
                 }}
                 className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
                 onClick={() => onRowClick?.(row)}
