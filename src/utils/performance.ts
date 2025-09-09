@@ -1,15 +1,17 @@
-// Advanced performance optimization utilities
+// Advanced performance optimization utilities with enterprise-grade monitoring
 
 export class PerformanceOptimizer {
   private static performanceEntries: PerformanceEntry[] = [];
   private static memoryBaseline: number = 0;
   private static renderMetrics = new Map<string, number[]>();
+  private static observers: PerformanceObserver[] = [];
 
   // Initialize performance monitoring
   static init(): void {
     this.setupPerformanceObserver();
     this.setupMemoryMonitoring();
     this.setupRenderTracking();
+    this.setupNetworkMonitoring();
   }
 
   private static setupPerformanceObserver(): void {
@@ -26,6 +28,7 @@ export class PerformanceOptimizer {
         }
       });
       longTaskObserver.observe({ entryTypes: ['longtask'] });
+      this.observers.push(longTaskObserver);
 
       // Monitor layout shifts
       const clsObserver = new PerformanceObserver((list) => {
@@ -38,6 +41,7 @@ export class PerformanceOptimizer {
         }
       });
       clsObserver.observe({ entryTypes: ['layout-shift'] });
+      this.observers.push(clsObserver);
 
       // Monitor largest contentful paint
       const lcpObserver = new PerformanceObserver((list) => {
@@ -49,6 +53,7 @@ export class PerformanceOptimizer {
         }
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+      this.observers.push(lcpObserver);
 
     } catch (error) {
       console.warn('Performance observer setup failed:', error);
@@ -73,11 +78,59 @@ export class PerformanceOptimizer {
   }
 
   private static setupRenderTracking(): void {
-    // Track component render times
-    // React render tracking is handled by React DevTools in development
+    // Track component render performance without React dependency
     if (process.env.NODE_ENV === 'development') {
-      console.log('Performance tracking enabled - use React DevTools Profiler for detailed analysis');
+      console.log('Performance tracking enabled - monitoring render performance');
+      
+      // Monitor DOM mutations for render tracking
+      if (typeof MutationObserver !== 'undefined') {
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+              // Track DOM updates as proxy for renders
+              this.trackRenderMetric('dom_update', performance.now());
+            }
+          });
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
     }
+  }
+
+  private static setupNetworkMonitoring(): void {
+    if (typeof PerformanceObserver === 'undefined') return;
+
+    try {
+      const networkObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          const networkEntry = entry as PerformanceResourceTiming;
+          if (networkEntry.duration > 1000) {
+            console.warn(`Slow network request: ${networkEntry.name} took ${networkEntry.duration.toFixed(2)}ms`);
+            this.reportPerformanceIssue('slow_network', networkEntry.duration);
+          }
+        }
+      });
+      networkObserver.observe({ entryTypes: ['resource'] });
+      this.observers.push(networkObserver);
+    } catch (error) {
+      console.warn('Network observer setup failed:', error);
+    }
+  }
+
+  private static trackRenderMetric(component: string, time: number): void {
+    const metrics = this.renderMetrics.get(component) || [];
+    metrics.push(time);
+    
+    // Keep only last 100 measurements
+    if (metrics.length > 100) {
+      metrics.shift();
+    }
+    
+    this.renderMetrics.set(component, metrics);
   }
 
   // Debounce utility for performance optimization
@@ -208,7 +261,6 @@ export class PerformanceOptimizer {
   private static reportPerformanceIssue(type: string, value: number): void {
     // In production, send to monitoring service
     if (process.env.NODE_ENV === 'production') {
-      // Example: Send to analytics service
       fetch('/api/performance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -247,5 +299,11 @@ export class PerformanceOptimizer {
     if ('memory' in performance) {
       this.memoryBaseline = (performance as any).memory.usedJSHeapSize;
     }
+  }
+
+  // Cleanup observers
+  static cleanup(): void {
+    this.observers.forEach(observer => observer.disconnect());
+    this.observers = [];
   }
 }

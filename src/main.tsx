@@ -2,22 +2,21 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { Analytics, PerformanceMonitor } from './utils/analytics';
+import { Analytics } from './utils/analytics';
 import { PerformanceOptimizer } from './utils/performance';
 import { SecurityManager } from './utils/security';
 import { AccessibilityUtils } from './utils/accessibility';
 
 // Initialize analytics and performance monitoring
 Analytics.track('app_start');
-PerformanceMonitor.init();
 PerformanceOptimizer.init();
 
 // Initialize security measures
 SecurityManager.implementCSP();
 
 // Initialize accessibility features
-AccessibilityUtils.addSkipLink('root', 'Skip to main content');
-AccessibilityUtils.addLandmarkNavigation();
+AccessibilityUtils.init();
+
 // Register service worker for PWA
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   window.addEventListener('load', () => {
@@ -32,6 +31,12 @@ if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
       });
   });
 }
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  PerformanceOptimizer.cleanup();
+  AccessibilityUtils.cleanup();
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

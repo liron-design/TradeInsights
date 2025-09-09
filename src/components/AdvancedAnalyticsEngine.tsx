@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Cpu, Zap, Target, TrendingUp, AlertTriangle } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface MLModel {
   name: string;
@@ -181,30 +180,18 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
+      <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-900 mb-2">Advanced Analytics Engine</h2>
         <p className="text-slate-600">
           Machine learning models for institutional-grade trading signal generation
         </p>
-      </motion.div>
+      </div>
 
       {/* Model Performance Overview */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {models.map((model, index) => (
-          <motion.div
+          <div
             key={model.name}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
             className={`bg-white rounded-xl shadow-lg p-6 border cursor-pointer transition-all duration-200 ${
               selectedModel === model.name.toLowerCase().split(' ')[0] 
                 ? 'border-blue-500 ring-2 ring-blue-200' 
@@ -235,18 +222,13 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
                 />
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Selected Model Details */}
       {selectedModelData && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">{selectedModelData.name} Analysis</h3>
             
@@ -269,16 +251,13 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
               <h4 className="font-semibold text-slate-900">Model Reasoning:</h4>
               <ul className="space-y-2">
                 {selectedModelData.prediction.reasoning.map((reason, index) => (
-                  <motion.li
+                  <li
                     key={index}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
                     className="flex items-start space-x-2 text-sm text-slate-700"
                   >
                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
                     <span>{reason}</span>
-                  </motion.li>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -305,11 +284,8 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
             
             <div className="space-y-3">
               {featureImportance.map((feature, index) => (
-                <motion.div
+                <div
                   key={feature.feature}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
                   className="flex items-center justify-between"
                 >
                   <div className="flex items-center space-x-3">
@@ -321,18 +297,16 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-3">
                     <div className="w-24 bg-slate-200 rounded-full h-2">
-                      <motion.div 
-                        className="bg-blue-600 h-2 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${feature.importance * 100}%` }}
-                        transition={{ duration: 1, delay: index * 0.1 }}
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${feature.importance * 100}%` }}
                       />
                     </div>
                     <span className="text-sm font-medium text-slate-900 w-12 text-right">
                       {(feature.importance * 100).toFixed(0)}%
                     </span>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -356,16 +330,11 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Model Ensemble Results */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="bg-white rounded-xl shadow-lg p-6 border border-slate-200"
-      >
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
         <h3 className="text-lg font-bold text-slate-900 mb-4">Ensemble Model Consensus</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -377,11 +346,9 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
             <div className="text-3xl font-bold text-blue-900 mb-2">BUY</div>
             <div className="text-sm text-blue-700">76% Model Agreement</div>
             <div className="mt-4 w-full bg-blue-200 rounded-full h-3">
-              <motion.div 
-                className="bg-blue-600 h-3 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: '76%' }}
-                transition={{ duration: 1.5 }}
+              <div 
+                className="bg-blue-600 h-3 rounded-full transition-all duration-1500"
+                style={{ width: '76%' }}
               />
             </div>
           </div>
@@ -394,11 +361,9 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
             <div className="text-3xl font-bold text-green-900 mb-2">88%</div>
             <div className="text-sm text-green-700">High Confidence</div>
             <div className="mt-4 w-full bg-green-200 rounded-full h-3">
-              <motion.div 
-                className="bg-green-600 h-3 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: '88%' }}
-                transition={{ duration: 1.5, delay: 0.2 }}
+              <div 
+                className="bg-green-600 h-3 rounded-full transition-all duration-1500"
+                style={{ width: '88%' }}
               />
             </div>
           </div>
@@ -426,7 +391,7 @@ export const AdvancedAnalyticsEngine: React.FC = () => {
             <li>• Risk-adjusted returns favor long positioning</li>
           </ul>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

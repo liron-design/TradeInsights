@@ -1,8 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, TrendingUp, Shield, Target, BarChart3, AlertTriangle } from 'lucide-react';
-import { enhancedMarketDataService, EnhancedMarketDataPoint } from '../services/enhancedMarketDataService';
-import { advancedAIService, AdvancedAIAnalysis, RiskMetrics } from '../services/advancedAIService';
 import { LoadingSpinner } from './LoadingSpinner';
+
+// Mock data interfaces for demonstration
+interface EnhancedMarketDataPoint {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  marketCap: number;
+  technicals: {
+    rsi: number;
+    macd: number;
+    sma20: number;
+    sma50: number;
+  };
+  sentiment: {
+    score: number;
+    newsCount: number;
+  };
+}
+
+interface AdvancedAIAnalysis {
+  symbol: string;
+  confidence: number;
+  signal: 'strong_bullish' | 'bullish' | 'neutral' | 'bearish' | 'strong_bearish';
+  reasoning: string;
+  timeframe: string;
+  riskLevel: 'very_low' | 'low' | 'medium' | 'high' | 'very_high';
+  scores: {
+    technical: number;
+    fundamental: number;
+    sentiment: number;
+    momentum: number;
+    volatility: number;
+    volume: number;
+  };
+  priceTargets: {
+    conservative: number;
+    moderate: number;
+    aggressive: number;
+    stopLoss: number;
+  };
+  strategies: Array<{
+    type: string;
+    description: string;
+    riskReward: string;
+    probability: number;
+    timeHorizon: string;
+  }>;
+}
+
+interface RiskMetrics {
+  portfolioVaR: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  beta: number;
+  alpha: number;
+  correlationRisk: number;
+}
 
 export const AdvancedDashboard: React.FC = () => {
   const [marketData, setMarketData] = useState<EnhancedMarketDataPoint[]>([]);
@@ -21,19 +79,88 @@ export const AdvancedDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Load enhanced market data
-      const data = await enhancedMarketDataService.getEnhancedMarketData();
-      setMarketData(data);
+      // Generate mock enhanced market data
+      const mockData: EnhancedMarketDataPoint[] = [
+        {
+          symbol: 'SPY',
+          name: 'SPDR S&P 500 ETF',
+          price: 545.23,
+          change: 2.45,
+          changePercent: 0.45,
+          volume: 45000000,
+          marketCap: 500000000000,
+          technicals: { rsi: 52.3, macd: 0.45, sma20: 543.12, sma50: 540.87 },
+          sentiment: { score: 15, newsCount: 12 }
+        },
+        {
+          symbol: 'NVDA',
+          name: 'NVIDIA Corporation',
+          price: 128.45,
+          change: -1.23,
+          changePercent: -0.95,
+          volume: 28000000,
+          marketCap: 3200000000000,
+          technicals: { rsi: 48.7, macd: -0.23, sma20: 129.34, sma50: 125.67 },
+          sentiment: { score: 25, newsCount: 18 }
+        },
+        {
+          symbol: 'TSLA',
+          name: 'Tesla Inc',
+          price: 242.87,
+          change: 5.67,
+          changePercent: 2.39,
+          volume: 35000000,
+          marketCap: 780000000000,
+          technicals: { rsi: 65.2, macd: 1.23, sma20: 240.12, sma50: 235.45 },
+          sentiment: { score: 35, newsCount: 22 }
+        }
+      ];
+      setMarketData(mockData);
 
-      // Generate AI analyses for all symbols
-      const analyses = await Promise.all(
-        data.map(symbol => advancedAIService.analyzeSymbol(symbol))
-      );
-      setAiAnalyses(analyses);
+      // Generate mock AI analyses
+      const mockAnalyses: AdvancedAIAnalysis[] = mockData.map(data => ({
+        symbol: data.symbol,
+        confidence: 70 + Math.random() * 25,
+        signal: data.changePercent > 1 ? 'bullish' : data.changePercent < -1 ? 'bearish' : 'neutral',
+        reasoning: `Technical analysis shows ${data.technicals.rsi > 60 ? 'overbought' : data.technicals.rsi < 40 ? 'oversold' : 'neutral'} conditions with ${data.sentiment.score > 20 ? 'positive' : 'mixed'} sentiment.`,
+        timeframe: 'Medium-term (1-4 weeks)',
+        riskLevel: Math.abs(data.changePercent) > 2 ? 'high' : 'medium',
+        scores: {
+          technical: data.technicals.rsi,
+          fundamental: 60 + Math.random() * 20,
+          sentiment: 50 + data.sentiment.score,
+          momentum: 50 + data.changePercent * 10,
+          volatility: 50 + Math.abs(data.changePercent) * 5,
+          volume: data.volume > 30000000 ? 75 : 50
+        },
+        priceTargets: {
+          conservative: data.price * (data.changePercent > 0 ? 1.02 : 0.98),
+          moderate: data.price * (data.changePercent > 0 ? 1.05 : 0.95),
+          aggressive: data.price * (data.changePercent > 0 ? 1.10 : 0.90),
+          stopLoss: data.price * (data.changePercent > 0 ? 0.95 : 1.05)
+        },
+        strategies: [
+          {
+            type: data.changePercent > 0 ? 'Long Position' : 'Short Position',
+            description: `${data.changePercent > 0 ? 'Buy' : 'Sell'} ${data.symbol} with technical confirmation`,
+            riskReward: '1:2.5',
+            probability: 70 + Math.random() * 20,
+            timeHorizon: '1-3 weeks'
+          }
+        ]
+      }));
+      setAiAnalyses(mockAnalyses);
 
-      // Calculate portfolio risk metrics
-      const risk = await advancedAIService.calculateRiskMetrics(data);
-      setRiskMetrics(risk);
+      // Generate mock risk metrics
+      const mockRisk: RiskMetrics = {
+        portfolioVaR: -2.5 + Math.random() * 1.5,
+        sharpeRatio: 1.2 + Math.random() * 0.8,
+        maxDrawdown: 8.5 + Math.random() * 5,
+        beta: 0.9 + Math.random() * 0.4,
+        alpha: -0.5 + Math.random() * 2,
+        correlationRisk: 15 + Math.random() * 10
+      };
+      setRiskMetrics(mockRisk);
 
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -196,25 +323,25 @@ export const AdvancedDashboard: React.FC = () => {
                     <div>
                       <span className="text-slate-600">Conservative:</span>
                       <div className="font-bold text-slate-900">
-                        ${selectedAnalysis.priceTargets.conservative}
+                        ${selectedAnalysis.priceTargets.conservative.toFixed(2)}
                       </div>
                     </div>
                     <div>
                       <span className="text-slate-600">Moderate:</span>
                       <div className="font-bold text-slate-900">
-                        ${selectedAnalysis.priceTargets.moderate}
+                        ${selectedAnalysis.priceTargets.moderate.toFixed(2)}
                       </div>
                     </div>
                     <div>
                       <span className="text-slate-600">Aggressive:</span>
                       <div className="font-bold text-slate-900">
-                        ${selectedAnalysis.priceTargets.aggressive}
+                        ${selectedAnalysis.priceTargets.aggressive.toFixed(2)}
                       </div>
                     </div>
                     <div>
                       <span className="text-slate-600">Stop Loss:</span>
                       <div className="font-bold text-red-600">
-                        ${selectedAnalysis.priceTargets.stopLoss}
+                        ${selectedAnalysis.priceTargets.stopLoss.toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -230,7 +357,7 @@ export const AdvancedDashboard: React.FC = () => {
                           <span className="font-medium text-slate-900">{strategy.type}</span>
                           <div className="flex items-center space-x-4 text-sm">
                             <span className="text-slate-600">R/R: {strategy.riskReward}</span>
-                            <span className="text-blue-600">{strategy.probability}% prob</span>
+                            <span className="text-blue-600">{strategy.probability.toFixed(0)}% prob</span>
                           </div>
                         </div>
                         <p className="text-sm text-slate-600 mb-1">{strategy.description}</p>
@@ -252,24 +379,24 @@ export const AdvancedDashboard: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-600">Value at Risk (95%)</span>
-                  <span className="font-bold text-red-600">{riskMetrics.portfolioVaR}%</span>
+                  <span className="font-bold text-red-600">{riskMetrics.portfolioVaR.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-600">Sharpe Ratio</span>
-                  <span className="font-bold text-slate-900">{riskMetrics.sharpeRatio}</span>
+                  <span className="font-bold text-slate-900">{riskMetrics.sharpeRatio.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-600">Max Drawdown</span>
-                  <span className="font-bold text-red-600">{riskMetrics.maxDrawdown}%</span>
+                  <span className="font-bold text-red-600">{riskMetrics.maxDrawdown.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-600">Portfolio Beta</span>
-                  <span className="font-bold text-slate-900">{riskMetrics.beta}</span>
+                  <span className="font-bold text-slate-900">{riskMetrics.beta.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-600">Alpha</span>
                   <span className={`font-bold ${riskMetrics.alpha >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {riskMetrics.alpha}%
+                    {riskMetrics.alpha.toFixed(2)}%
                   </span>
                 </div>
               </div>
@@ -288,7 +415,7 @@ export const AdvancedDashboard: React.FC = () => {
                     </span>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-slate-900">{analysis.confidence}%</div>
+                    <div className="text-sm font-medium text-slate-900">{analysis.confidence.toFixed(0)}%</div>
                     <div className={`text-xs ${getRiskColor(analysis.riskLevel)}`}>
                       {analysis.riskLevel.replace('_', ' ')}
                     </div>

@@ -1,8 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, TrendingUp, Shield, Target, BarChart3, AlertTriangle, Activity, Zap } from 'lucide-react';
-import { marketMicrostructureService, MarketMicrostructure, LiquidityMetrics, MarketRegime } from '../services/marketMicrostructureService';
 import { LoadingSpinner } from './LoadingSpinner';
-import { motion, AnimatePresence } from 'framer-motion';
+
+// Mock interfaces for institutional data
+interface MarketMicrostructure {
+  symbol: string;
+  timestamp: number;
+  price: number;
+  volume: number;
+  bid: number;
+  ask: number;
+  spreadBps: number;
+  vwap: number;
+  orderFlow: {
+    buyVolume: number;
+    sellVolume: number;
+    netFlow: number;
+    largeOrders: number;
+    institutionalFlow: number;
+  };
+  marketImpact: {
+    temporary: number;
+    permanent: number;
+    liquidityCost: number;
+  };
+  volatility: {
+    realized: number;
+    implied: number;
+    garch: number;
+    parkinson: number;
+  };
+}
+
+interface LiquidityMetrics {
+  symbol: string;
+  bidAskSpread: number;
+  marketDepth: number;
+  priceImpact: number;
+  amihudRatio: number;
+}
+
+interface MarketRegime {
+  regime: 'trending_bull' | 'trending_bear' | 'mean_reverting' | 'volatile' | 'low_vol';
+  confidence: number;
+  duration: number;
+  characteristics: {
+    volatility: number;
+    correlation: number;
+    momentum: number;
+    meanReversion: number;
+  };
+  transitions: {
+    probability: number;
+    triggers: string[];
+  };
+}
 
 export const InstitutionalDashboard: React.FC = () => {
   const [microstructureData, setMicrostructureData] = useState<MarketMicrostructure[]>([]);
@@ -22,22 +74,75 @@ export const InstitutionalDashboard: React.FC = () => {
 
   const loadInstitutionalData = async () => {
     try {
-      // Load market microstructure data
-      const microData = await marketMicrostructureService.getMarketMicrostructure(symbols);
-      setMicrostructureData(microData);
+      // Generate mock market microstructure data
+      const mockMicroData: MarketMicrostructure[] = symbols.map(symbol => {
+        const basePrice = getBasePrice(symbol);
+        const spread = basePrice * 0.001;
+        const volume = Math.floor(Math.random() * 1000000 + 100000);
+        
+        return {
+          symbol,
+          timestamp: Date.now(),
+          price: basePrice + (Math.random() - 0.5) * basePrice * 0.01,
+          volume,
+          bid: basePrice - spread / 2,
+          ask: basePrice + spread / 2,
+          spreadBps: (spread / basePrice) * 10000,
+          vwap: basePrice * (0.998 + Math.random() * 0.004),
+          orderFlow: {
+            buyVolume: Math.floor(volume * (0.4 + Math.random() * 0.2)),
+            sellVolume: Math.floor(volume * (0.4 + Math.random() * 0.2)),
+            netFlow: Math.floor((Math.random() - 0.5) * volume * 0.2),
+            largeOrders: Math.floor(Math.random() * 50),
+            institutionalFlow: Math.floor(volume * (0.6 + Math.random() * 0.3))
+          },
+          marketImpact: {
+            temporary: Math.random() * 0.001,
+            permanent: Math.random() * 0.0005,
+            liquidityCost: Math.random() * 0.0015
+          },
+          volatility: {
+            realized: Math.random() * 0.03 + 0.01,
+            implied: Math.random() * 30 + 15,
+            garch: Math.random() * 0.025 + 0.015,
+            parkinson: Math.random() * 0.02 + 0.01
+          }
+        };
+      });
+      setMicrostructureData(mockMicroData);
 
-      // Load liquidity metrics for each symbol
+      // Generate mock liquidity metrics
       const liquidityMap = new Map<string, LiquidityMetrics>();
       const regimeMap = new Map<string, MarketRegime>();
       
-      for (const symbol of symbols) {
-        const [liquidity, regime] = await Promise.all([
-          marketMicrostructureService.getLiquidityAnalysis(symbol),
-          marketMicrostructureService.getMarketRegimeAnalysis(symbol)
-        ]);
-        liquidityMap.set(symbol, liquidity);
-        regimeMap.set(symbol, regime);
-      }
+      symbols.forEach(symbol => {
+        liquidityMap.set(symbol, {
+          symbol,
+          bidAskSpread: Math.random() * 0.02 + 0.005,
+          marketDepth: Math.floor(Math.random() * 1000000 + 500000),
+          priceImpact: Math.random() * 0.001 + 0.0005,
+          amihudRatio: Math.random() * 0.00005 + 0.00001
+        });
+
+        const regimes: MarketRegime['regime'][] = ['trending_bull', 'trending_bear', 'mean_reverting', 'volatile', 'low_vol'];
+        const randomRegime = regimes[Math.floor(Math.random() * regimes.length)];
+        
+        regimeMap.set(symbol, {
+          regime: randomRegime,
+          confidence: 60 + Math.random() * 30,
+          duration: Math.random() * 20 + 5,
+          characteristics: {
+            volatility: Math.random() * 0.05 + 0.01,
+            correlation: Math.random() * 0.8 + 0.2,
+            momentum: (Math.random() - 0.5) * 0.1,
+            meanReversion: Math.random() * 0.3 + 0.1
+          },
+          transitions: {
+            probability: Math.random() * 0.2 + 0.05,
+            triggers: ['Volume spike', 'News event', 'Technical breakout']
+          }
+        });
+      });
       
       setLiquidityMetrics(liquidityMap);
       setMarketRegimes(regimeMap);
@@ -48,6 +153,18 @@ export const InstitutionalDashboard: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getBasePrice = (symbol: string): number => {
+    const prices: Record<string, number> = {
+      'SPY': 545.23,
+      'NVDA': 128.45,
+      'TSLA': 242.87,
+      'AAPL': 191.23,
+      'BTC-USD': 67245.32,
+      'ETH-USD': 3456.78
+    };
+    return prices[symbol] || 100;
   };
 
   const selectedData = microstructureData.find(data => data.symbol === selectedSymbol);
@@ -66,7 +183,6 @@ export const InstitutionalDashboard: React.FC = () => {
 
   const formatBasisPoints = (value: number) => `${value.toFixed(1)} bps`;
   const formatPercentage = (value: number) => `${(value * 100).toFixed(2)}%`;
-  const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
 
   if (isLoading) {
     return (
@@ -80,25 +196,15 @@ export const InstitutionalDashboard: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-8"
-      >
+      <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-900 mb-2">Institutional Trading Dashboard</h2>
         <p className="text-slate-600">
           Advanced market microstructure analysis with real-time liquidity metrics and regime detection
         </p>
-      </motion.div>
+      </div>
 
       {/* Real-Time Market Overview */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <Activity className="w-8 h-8 text-green-600" />
@@ -152,23 +258,16 @@ export const InstitutionalDashboard: React.FC = () => {
           </div>
           <div className="text-sm text-slate-500">Realized vol</div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Symbol Selection */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mb-8"
-      >
+      <div className="mb-8">
         <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
           <h3 className="text-lg font-bold text-slate-900 mb-4">Symbol Analysis</h3>
           <div className="flex flex-wrap gap-2 mb-6">
             {symbols.map(symbol => (
-              <motion.button
+              <button
                 key={symbol}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedSymbol(symbol)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   selectedSymbol === symbol
@@ -177,118 +276,104 @@ export const InstitutionalDashboard: React.FC = () => {
                 }`}
               >
                 {symbol}
-              </motion.button>
+              </button>
             ))}
           </div>
 
-          <AnimatePresence mode="wait">
-            {selectedData && (
-              <motion.div
-                key={selectedSymbol}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-              >
-                {/* Price & Spread Info */}
-                <div className="bg-slate-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-slate-900 mb-3">Market Data</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Price:</span>
-                      <span className="font-bold text-slate-900">${selectedData.price}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Bid:</span>
-                      <span className="font-medium text-green-600">${selectedData.bid}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Ask:</span>
-                      <span className="font-medium text-red-600">${selectedData.ask}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Spread:</span>
-                      <span className="font-medium text-slate-900">{formatBasisPoints(selectedData.spreadBps)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">VWAP:</span>
-                      <span className="font-medium text-blue-600">${selectedData.vwap}</span>
-                    </div>
+          {selectedData && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Price & Spread Info */}
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-slate-900 mb-3">Market Data</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Price:</span>
+                    <span className="font-bold text-slate-900">${selectedData.price.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Bid:</span>
+                    <span className="font-medium text-green-600">${selectedData.bid.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Ask:</span>
+                    <span className="font-medium text-red-600">${selectedData.ask.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Spread:</span>
+                    <span className="font-medium text-slate-900">{formatBasisPoints(selectedData.spreadBps)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">VWAP:</span>
+                    <span className="font-medium text-blue-600">${selectedData.vwap.toFixed(2)}</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Order Flow */}
-                <div className="bg-slate-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-slate-900 mb-3">Order Flow</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Buy Volume:</span>
-                      <span className="font-medium text-green-600">{selectedData.orderFlow.buyVolume.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Sell Volume:</span>
-                      <span className="font-medium text-red-600">{selectedData.orderFlow.sellVolume.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Net Flow:</span>
-                      <span className={`font-bold ${selectedData.orderFlow.netFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {selectedData.orderFlow.netFlow >= 0 ? '+' : ''}{selectedData.orderFlow.netFlow.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Large Orders:</span>
-                      <span className="font-medium text-purple-600">{selectedData.orderFlow.largeOrders}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Institutional:</span>
-                      <span className="font-medium text-slate-900">{formatPercentage(selectedData.orderFlow.institutionalFlow / selectedData.volume)}</span>
-                    </div>
+              {/* Order Flow */}
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-slate-900 mb-3">Order Flow</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Buy Volume:</span>
+                    <span className="font-medium text-green-600">{selectedData.orderFlow.buyVolume.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Sell Volume:</span>
+                    <span className="font-medium text-red-600">{selectedData.orderFlow.sellVolume.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Net Flow:</span>
+                    <span className={`font-bold ${selectedData.orderFlow.netFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {selectedData.orderFlow.netFlow >= 0 ? '+' : ''}{selectedData.orderFlow.netFlow.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Large Orders:</span>
+                    <span className="font-medium text-purple-600">{selectedData.orderFlow.largeOrders}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Institutional:</span>
+                    <span className="font-medium text-slate-900">{formatPercentage(selectedData.orderFlow.institutionalFlow / selectedData.volume)}</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Volatility Metrics */}
-                <div className="bg-slate-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-slate-900 mb-3">Volatility</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Realized:</span>
-                      <span className="font-medium text-slate-900">{formatPercentage(selectedData.volatility.realized)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Implied:</span>
-                      <span className="font-medium text-blue-600">{formatPercentage(selectedData.volatility.implied / 100)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">GARCH:</span>
-                      <span className="font-medium text-purple-600">{formatPercentage(selectedData.volatility.garch)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Parkinson:</span>
-                      <span className="font-medium text-orange-600">{formatPercentage(selectedData.volatility.parkinson)}</span>
-                    </div>
+              {/* Volatility Metrics */}
+              <div className="bg-slate-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-slate-900 mb-3">Volatility</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Realized:</span>
+                    <span className="font-medium text-slate-900">{formatPercentage(selectedData.volatility.realized)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Implied:</span>
+                    <span className="font-medium text-blue-600">{formatPercentage(selectedData.volatility.implied / 100)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">GARCH:</span>
+                    <span className="font-medium text-purple-600">{formatPercentage(selectedData.volatility.garch)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Parkinson:</span>
+                    <span className="font-medium text-orange-600">{formatPercentage(selectedData.volatility.parkinson)}</span>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </div>
+          )}
         </div>
-      </motion.div>
+      </div>
 
       {/* Liquidity Analysis */}
       {selectedLiquidity && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8"
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Liquidity Metrics: {selectedSymbol}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
-                  {formatBasisPoints(selectedLiquidity.bidAskSpread / selectedData!.price * 10000)}
+                  {formatBasisPoints(selectedLiquidity.bidAskSpread / getBasePrice(selectedSymbol) * 10000)}
                 </div>
                 <div className="text-sm text-slate-600">Bid-Ask Spread</div>
               </div>
@@ -323,7 +408,7 @@ export const InstitutionalDashboard: React.FC = () => {
                   <span className="font-semibold capitalize">
                     {selectedRegime.regime.replace('_', ' ')} Regime
                   </span>
-                  <span className="text-sm font-medium">{selectedRegime.confidence}% Confidence</span>
+                  <span className="text-sm font-medium">{selectedRegime.confidence.toFixed(0)}% Confidence</span>
                 </div>
                 <div className="text-sm">Expected Duration: {selectedRegime.duration.toFixed(0)} days</div>
               </div>
@@ -357,16 +442,11 @@ export const InstitutionalDashboard: React.FC = () => {
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
       )}
 
       {/* Real-Time Market Data Table */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden"
-      >
+      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold text-slate-900">Real-Time Market Microstructure</h3>
@@ -392,73 +472,62 @@ export const InstitutionalDashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              <AnimatePresence>
-                {microstructureData.map((data, index) => (
-                  <motion.tr
-                    key={data.symbol}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
-                    onClick={() => setSelectedSymbol(data.symbol)}
-                  >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-slate-900">{data.symbol}</span>
-                        {marketRegimes.get(data.symbol) && (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            getRegimeColor(marketRegimes.get(data.symbol)!.regime)
-                          }`}>
-                            {marketRegimes.get(data.symbol)!.regime.split('_')[0]}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="text-right py-4 px-4 font-bold text-slate-900">
-                      ${data.price}
-                    </td>
-                    <td className="text-right py-4 px-4">
-                      <div className="text-sm">
-                        <div className="text-green-600">${data.bid}</div>
-                        <div className="text-red-600">${data.ask}</div>
-                      </div>
-                    </td>
-                    <td className="text-right py-4 px-4 font-medium">
-                      <span className={`${data.spreadBps > 5 ? 'text-red-600' : data.spreadBps > 3 ? 'text-yellow-600' : 'text-green-600'}`}>
-                        {data.spreadBps.toFixed(1)}
-                      </span>
-                    </td>
-                    <td className="text-right py-4 px-4 font-medium text-slate-900">
-                      {(data.volume / 1000).toFixed(0)}K
-                    </td>
-                    <td className={`text-right py-4 px-4 font-medium ${
-                      data.orderFlow.netFlow >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {data.orderFlow.netFlow >= 0 ? '+' : ''}{(data.orderFlow.netFlow / 1000).toFixed(0)}K
-                    </td>
-                    <td className="text-right py-4 px-4 font-medium text-blue-600">
-                      ${data.vwap}
-                    </td>
-                    <td className="text-right py-4 px-4 font-medium text-purple-600">
-                      {formatPercentage(data.volatility.realized)}
-                    </td>
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
+              {microstructureData.map((data, index) => (
+                <tr
+                  key={data.symbol}
+                  className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedSymbol(data.symbol)}
+                >
+                  <td className="py-4 px-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-slate-900">{data.symbol}</span>
+                      {marketRegimes.get(data.symbol) && (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          getRegimeColor(marketRegimes.get(data.symbol)!.regime)
+                        }`}>
+                          {marketRegimes.get(data.symbol)!.regime.split('_')[0]}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="text-right py-4 px-4 font-bold text-slate-900">
+                    ${data.price.toFixed(2)}
+                  </td>
+                  <td className="text-right py-4 px-4">
+                    <div className="text-sm">
+                      <div className="text-green-600">${data.bid.toFixed(2)}</div>
+                      <div className="text-red-600">${data.ask.toFixed(2)}</div>
+                    </div>
+                  </td>
+                  <td className="text-right py-4 px-4 font-medium">
+                    <span className={`${data.spreadBps > 5 ? 'text-red-600' : data.spreadBps > 3 ? 'text-yellow-600' : 'text-green-600'}`}>
+                      {data.spreadBps.toFixed(1)}
+                    </span>
+                  </td>
+                  <td className="text-right py-4 px-4 font-medium text-slate-900">
+                    {(data.volume / 1000).toFixed(0)}K
+                  </td>
+                  <td className={`text-right py-4 px-4 font-medium ${
+                    data.orderFlow.netFlow >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {data.orderFlow.netFlow >= 0 ? '+' : ''}{(data.orderFlow.netFlow / 1000).toFixed(0)}K
+                  </td>
+                  <td className="text-right py-4 px-4 font-medium text-blue-600">
+                    ${data.vwap.toFixed(2)}
+                  </td>
+                  <td className="text-right py-4 px-4 font-medium text-purple-600">
+                    {formatPercentage(data.volatility.realized)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </div>
 
       {/* Market Impact Analysis */}
       {selectedData && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white rounded-xl shadow-lg p-6 border border-slate-200"
-        >
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
           <h3 className="text-lg font-bold text-slate-900 mb-4">Market Impact Analysis: {selectedSymbol}</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -486,7 +555,7 @@ export const InstitutionalDashboard: React.FC = () => {
               <div className="text-sm text-purple-700">Total execution cost</div>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

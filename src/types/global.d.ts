@@ -98,4 +98,59 @@ export interface NotificationData {
   timestamp: Date;
 }
 
+// Advanced AI Analysis types
+export interface AISignal {
+  signal: 'strong_bullish' | 'bullish' | 'neutral' | 'bearish' | 'strong_bearish';
+  confidence: number;
+  timeframe: string;
+  reasoning: string;
+}
+
+// Market microstructure types
+export interface OrderFlow {
+  buyVolume: number;
+  sellVolume: number;
+  netFlow: number;
+  institutionalFlow: number;
+  retailFlow: number;
+}
+
+// Risk management types
+export interface RiskAssessment {
+  portfolioVaR: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  beta: number;
+  alpha: number;
+}
+
+// Chart data types
+export interface ChartDataPoint {
+  timestamp: string | number;
+  price: number;
+  volume?: number;
+  high?: number;
+  low?: number;
+  open?: number;
+  close?: number;
+}
+
+// Form validation types
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  sanitizedValue?: any;
+}
+
+// Export utility types
+export interface ExportOptions {
+  format: 'pdf' | 'excel' | 'csv' | 'json';
+  includeCharts: boolean;
+  includeData: boolean;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+}
+
 export {};
