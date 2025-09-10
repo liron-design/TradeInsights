@@ -120,12 +120,30 @@ export class ValidationUtils {
     return tickerRegex.test(ticker.toUpperCase());
   }
 
-  static validateTickerList(tickers: string): string[] {
-    return tickers
-      .split(',')
-      .map(t => t.trim().toUpperCase())
-      .filter(t => this.validateTicker(t))
-      .slice(0, 10); // Limit to 10 tickers
+  static validateTickerList(tickers: string): { valid: string[]; invalid: string[]; errors: string[] } {
+    const tickerArray = tickers.split(',').map(t => t.trim()).filter(t => t.length > 0);
+    const valid: string[] = [];
+    const invalid: string[] = [];
+    const errors: string[] = [];
+    
+    if (tickerArray.length > 20) {
+      errors.push('Maximum 20 tickers allowed');
+      return { valid, invalid, errors };
+    }
+    
+    // Remove duplicates
+    const uniqueTickers = [...new Set(tickerArray)];
+    
+    uniqueTickers.forEach(ticker => {
+      if (this.validateTicker(ticker)) {
+        valid.push(ticker.toUpperCase());
+      } else {
+        invalid.push(ticker);
+        errors.push(`Invalid ticker: ${ticker}`);
+      }
+    });
+    
+    return { valid, invalid, errors };
   }
 
   static sanitizeNumber(value: number, min: number = 0, max: number = Number.MAX_SAFE_INTEGER): number {

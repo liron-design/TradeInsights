@@ -1,33 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 
-// Advanced validation schemas
-const alertSchema = z.object({
-  symbol: z.string()
-    .min(1, 'Symbol is required')
-    .max(10, 'Symbol too long')
-    .regex(/^[A-Z0-9-]+$/, 'Invalid symbol format')
-    .transform(val => val.toUpperCase()),
-  
-  alertType: z.enum(['price_above', 'price_below', 'volume_spike', 'sentiment_change']),
-  
-  value: z.number()
-    .min(0.01, 'Value must be positive')
-    .max(1000000, 'Value too large'),
-  
-  email: z.string()
-    .email('Invalid email format')
-    .optional(),
-  
-  notes: z.string()
-    .max(500, 'Notes too long')
-    .optional()
-});
-
-type AlertFormData = z.infer<typeof alertSchema>;
+// Simple validation schemas without external dependencies
+interface AlertFormData {
+  symbol: string;
+  alertType: 'price_above' | 'price_below' | 'volume_spike' | 'sentiment_change';
+  value: number;
+  email?: string;
+  notes?: string;
+}
 
 interface AdvancedFormValidationProps {
   onSubmit: (data: AlertFormData) => void;
@@ -38,26 +19,91 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
   onSubmit,
   onCancel
 }) => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid, isSubmitting },
-    watch
-  } = useForm<AlertFormData>({
-    resolver: zodResolver(alertSchema),
-    mode: 'onChange'
+  const [formData, setFormData] = React.useState<AlertFormData>({
+    symbol: '',
+    alertType: 'price_above',
+    value: 0,
+    email: '',
+    notes: ''
   });
+  const [errors, setErrors] = React.useState<Partial<Record<keyof AlertFormData, string>>>({});
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const watchedSymbol = watch('symbol');
-  const watchedValue = watch('value');
+  const validateField = (name: keyof AlertFormData, value: any): string | null => {
+    switch (name) {
+      case 'symbol':
+        if (!value) return 'Symbol is required';
+        if (typeof value !== 'string') return 'Symbol must be text';
+        if (value.length > 10) return 'Symbol too long';
+        if (!/^[A-Z0-9-]+$/i.test(value)) return 'Invalid symbol format';
+        return null;
+      
+      case 'value':
+        if (!value || value <= 0) return 'Value must be positive';
+        if (value > 1000000) return 'Value too large';
+        return null;
+      
+      case 'email':
+        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return 'Invalid email format';
+        }
+        return null;
+      
+      case 'notes':
+        if (value && value.length > 500) return 'Notes too long';
+        return null;
+      
+      default:
+        return null;
+    }
+  };
 
-  const getFieldError = (fieldName: keyof AlertFormData) => {
-    return errors[fieldName]?.message;
+  const handleChange = (name: keyof AlertFormData, value: any) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleBlur = (name: keyof AlertFormData) => {
+    const error = validateField(name, formData[name]);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Validate all fields
+    const newErrors: Partial<Record<keyof AlertFormData, string>> = {};
+    (Object.keys(formData) as Array<keyof AlertFormData>).forEach(key => {
+      const error = validateField(key, formData[key]);
+      if (error) newErrors[key] = error;
+    });
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      try {
+        await onSubmit({
+          ...formData,
+          symbol: formData.symbol.toUpperCase()
+        });
+      } catch (error) {
+        console.error('Form submission error:', error);
+      }
+    }
+    
+    setIsSubmitting(false);
   };
 
   const getFieldStatus = (fieldName: keyof AlertFormData) => {
     if (errors[fieldName]) return 'error';
-    if (watch(fieldName)) return 'success';
+    if (formData[fieldName]) return 'success';
     return 'default';
   };
 
@@ -86,11 +132,13 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
     return null;
   };
 
+  const isValid = Object.keys(errors).length === 0 && formData.symbol && formData.value > 0;
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
       <h3 className="text-lg font-bold text-slate-900 mb-6">Create Advanced Alert</h3>
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Symbol Input */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -98,8 +146,10 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
           </label>
           <div className="relative">
             <input
-              {...register('symbol')}
               type="text"
+              value={formData.symbol}
+              onChange={(e) => handleChange('symbol', e.target.value)}
+              onBlur={() => handleBlur('symbol')}
               placeholder="NVDA"
               className={getInputClasses('symbol')}
             />
@@ -107,10 +157,10 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
               {renderFieldIcon('symbol')}
             </div>
           </div>
-          {getFieldError('symbol') && (
-            <p className="mt-1 text-sm text-red-600">{getFieldError('symbol')}</p>
+          {errors.symbol && (
+            <p className="mt-1 text-sm text-red-600">{errors.symbol}</p>
           )}
-          {watchedSymbol && !errors.symbol && (
+          {formData.symbol && !errors.symbol && (
             <p className="mt-1 text-sm text-green-600">Symbol validated ✓</p>
           )}
         </div>
@@ -121,18 +171,15 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
             Alert Type *
           </label>
           <select
-            {...register('alertType')}
+            value={formData.alertType}
+            onChange={(e) => handleChange('alertType', e.target.value)}
             className={getInputClasses('alertType')}
           >
-            <option value="">Select alert type</option>
             <option value="price_above">Price Above</option>
             <option value="price_below">Price Below</option>
             <option value="volume_spike">Volume Spike</option>
             <option value="sentiment_change">Sentiment Change</option>
           </select>
-          {getFieldError('alertType') && (
-            <p className="mt-1 text-sm text-red-600">{getFieldError('alertType')}</p>
-          )}
         </div>
 
         {/* Value Input */}
@@ -142,9 +189,11 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
           </label>
           <div className="relative">
             <input
-              {...register('value', { valueAsNumber: true })}
               type="number"
               step="0.01"
+              value={formData.value || ''}
+              onChange={(e) => handleChange('value', parseFloat(e.target.value) || 0)}
+              onBlur={() => handleBlur('value')}
               placeholder="130.00"
               className={getInputClasses('value')}
             />
@@ -152,10 +201,10 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
               {renderFieldIcon('value')}
             </div>
           </div>
-          {getFieldError('value') && (
-            <p className="mt-1 text-sm text-red-600">{getFieldError('value')}</p>
+          {errors.value && (
+            <p className="mt-1 text-sm text-red-600">{errors.value}</p>
           )}
-          {watchedValue && !errors.value && (
+          {formData.value && !errors.value && (
             <p className="mt-1 text-sm text-blue-600">
               Alert will trigger when condition is met
             </p>
@@ -169,8 +218,10 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
           </label>
           <div className="relative">
             <input
-              {...register('email')}
               type="email"
+              value={formData.email || ''}
+              onChange={(e) => handleChange('email', e.target.value)}
+              onBlur={() => handleBlur('email')}
               placeholder="trader@example.com"
               className={getInputClasses('email')}
             />
@@ -178,8 +229,8 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
               {renderFieldIcon('email')}
             </div>
           </div>
-          {getFieldError('email') && (
-            <p className="mt-1 text-sm text-red-600">{getFieldError('email')}</p>
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
           )}
         </div>
 
@@ -189,13 +240,15 @@ export const AdvancedFormValidation: React.FC<AdvancedFormValidationProps> = ({
             Notes (Optional)
           </label>
           <textarea
-            {...register('notes')}
+            value={formData.notes || ''}
+            onChange={(e) => handleChange('notes', e.target.value)}
+            onBlur={() => handleBlur('notes')}
             rows={3}
             placeholder="Additional notes about this alert..."
             className={getInputClasses('notes')}
           />
-          {getFieldError('notes') && (
-            <p className="mt-1 text-sm text-red-600">{getFieldError('notes')}</p>
+          {errors.notes && (
+            <p className="mt-1 text-sm text-red-600">{errors.notes}</p>
           )}
         </div>
 

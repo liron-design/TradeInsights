@@ -25,7 +25,7 @@ export const Settings: React.FC = () => {
     // Validate inputs
     if (key === 'focusTickers') {
       const tickers = ValidationUtils.validateTickerList(value);
-      validatedValue = tickers.join(', ');
+      validatedValue = tickers.valid.join(', ');
     } else if (key === 'market' && !ValidationUtils.validateMarket(value)) {
       return; // Invalid market
     } else if (key === 'timeHorizon' && !ValidationUtils.validateTimeHorizon(value)) {
@@ -90,6 +90,43 @@ export const Settings: React.FC = () => {
       title: 'Settings Reset',
       message: 'Settings have been reset to defaults. Click Save to apply.'
     });
+  };
+
+  const handleExportData = () => {
+    const dataToExport = {
+      settings,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'tradeinsight-settings.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    addNotification({
+      type: 'success',
+      title: 'Data Exported',
+      message: 'Your settings have been exported successfully.'
+    });
+  };
+
+  const handleClearData = () => {
+    if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      handleReset();
+      addNotification({
+        type: 'warning',
+        title: 'Data Cleared',
+        message: 'All data has been cleared and settings reset.'
+      });
+    }
   };
 
   return (
@@ -327,7 +364,10 @@ export const Settings: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            <button className="w-full text-left p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+            <button 
+              onClick={handleExportData}
+              className="w-full text-left p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium text-slate-900">Export Data</h4>
@@ -347,9 +387,10 @@ export const Settings: React.FC = () => {
               </div>
             </button>
 
-            <button className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-red-600">
-              onClick={handleReset}
-              onClick={handleReset}
+            <button 
+              onClick={handleClearData}
+              className="w-full text-left p-4 border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-red-600"
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">Clear All Data</h4>
@@ -362,9 +403,10 @@ export const Settings: React.FC = () => {
       </div>
 
       <div className="mt-8 flex justify-end space-x-4">
-        <button className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+        <button 
           onClick={handleReset}
-          onClick={handleReset}
+          className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+        >
           Reset to Defaults
         </button>
         <button 

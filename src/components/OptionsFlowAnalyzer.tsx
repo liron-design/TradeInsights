@@ -39,7 +39,7 @@ export const OptionsFlowAnalyzer: React.FC<OptionsFlowAnalyzerProps> = ({ symbol
           // Calculate summary statistics
           const callVolume = recent.filter(f => f.type === 'call').reduce((sum, f) => sum + f.volume, 0);
           const putVolume = recent.filter(f => f.type === 'put').reduce((sum, f) => sum + f.volume, 0);
-          const avgIV = recent.reduce((sum, f) => sum + f.impliedVolatility, 0) / recent.length;
+          const avgIV = recent.length > 0 ? recent.reduce((sum, f) => sum + f.impliedVolatility, 0) / recent.length : 0;
           const netGamma = recent.reduce((sum, f) => sum + f.gamma, 0);
           const netDelta = recent.reduce((sum, f) => sum + f.delta, 0);
 
@@ -145,68 +145,80 @@ export const OptionsFlowAnalyzer: React.FC<OptionsFlowAnalyzerProps> = ({ symbol
         {/* Volume by Strike */}
         <div>
           <h4 className="font-semibold text-slate-900 mb-4">Volume by Strike</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={strikeData.slice(-10)}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="strike" 
-                stroke="#64748b"
-                fontSize={12}
-                tickFormatter={(value) => `$${value}`}
-              />
-              <YAxis 
-                stroke="#64748b"
-                fontSize={12}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
-              />
-              <Tooltip 
-                formatter={(value, name) => [
-                  `${(value as number).toLocaleString()}`,
-                  name === 'callVolume' ? 'Call Volume' : 'Put Volume'
-                ]}
-                labelFormatter={(label) => `Strike: $${label}`}
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#f8fafc'
-                }}
-              />
-              <Bar dataKey="callVolume" fill="#10b981" name="callVolume" />
-              <Bar dataKey="putVolume" fill="#ef4444" name="putVolume" />
-            </BarChart>
-          </ResponsiveContainer>
+          {strikeData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={strikeData.slice(-10)}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="strike" 
+                  stroke="#64748b"
+                  fontSize={12}
+                  tickFormatter={(value) => `$${value}`}
+                />
+                <YAxis 
+                  stroke="#64748b"
+                  fontSize={12}
+                  tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    `${(value as number).toLocaleString()}`,
+                    name === 'callVolume' ? 'Call Volume' : 'Put Volume'
+                  ]}
+                  labelFormatter={(label) => `Strike: $${label}`}
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#f8fafc'
+                  }}
+                />
+                <Bar dataKey="callVolume" fill="#10b981" name="callVolume" />
+                <Bar dataKey="putVolume" fill="#ef4444" name="putVolume" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg">
+              <p className="text-slate-500">No strike data available</p>
+            </div>
+          )}
         </div>
 
         {/* Call/Put Distribution */}
         <div>
           <h4 className="font-semibold text-slate-900 mb-4">Call/Put Distribution</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={volumeDistribution}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {volumeDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value) => [(value as number).toLocaleString(), 'Volume']}
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: 'none',
-                  borderRadius: '8px',
-                  color: '#f8fafc'
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {volumeDistribution.some(d => d.value > 0) ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={volumeDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {volumeDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value) => [(value as number).toLocaleString(), 'Volume']}
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#f8fafc'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg">
+              <p className="text-slate-500">No volume data available</p>
+            </div>
+          )}
           <div className="flex justify-center space-x-4 mt-4">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -223,50 +235,50 @@ export const OptionsFlowAnalyzer: React.FC<OptionsFlowAnalyzerProps> = ({ symbol
       {/* Recent Flow Table */}
       <div className="mt-6">
         <h4 className="font-semibold text-slate-900 mb-4">Recent Options Flow</h4>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="text-left py-2 px-3 font-medium text-slate-600">Strike</th>
-                <th className="text-left py-2 px-3 font-medium text-slate-600">Type</th>
-                <th className="text-right py-2 px-3 font-medium text-slate-600">Volume</th>
-                <th className="text-right py-2 px-3 font-medium text-slate-600">IV</th>
-                <th className="text-right py-2 px-3 font-medium text-slate-600">Delta</th>
-                <th className="text-right py-2 px-3 font-medium text-slate-600">Gamma</th>
-              </tr>
-            </thead>
-            <tbody>
-              {optionsFlow.slice(-10).map((flow, index) => (
-                <tr key={index} className="border-b border-slate-100">
-                  <td className="py-2 px-3 font-medium">${flow.strike}</td>
-                  <td className="py-2 px-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      flow.type === 'call' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {flow.type.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="text-right py-2 px-3">{flow.volume.toLocaleString()}</td>
-                  <td className="text-right py-2 px-3">{(flow.impliedVolatility * 100).toFixed(1)}%</td>
-                  <td className={`text-right py-2 px-3 ${flow.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {flow.delta.toFixed(3)}
-                  </td>
-                  <td className="text-right py-2 px-3">{flow.gamma.toFixed(3)}</td>
+        {optionsFlow.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="text-left py-2 px-3 font-medium text-slate-600">Strike</th>
+                  <th className="text-left py-2 px-3 font-medium text-slate-600">Type</th>
+                  <th className="text-right py-2 px-3 font-medium text-slate-600">Volume</th>
+                  <th className="text-right py-2 px-3 font-medium text-slate-600">IV</th>
+                  <th className="text-right py-2 px-3 font-medium text-slate-600">Delta</th>
+                  <th className="text-right py-2 px-3 font-medium text-slate-600">Gamma</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {optionsFlow.length === 0 && (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Activity className="w-8 h-8 text-slate-400 mx-auto mb-2 animate-pulse" />
-            <p className="text-slate-500">Waiting for options flow data...</p>
+              </thead>
+              <tbody>
+                {optionsFlow.slice(-10).map((flow, index) => (
+                  <tr key={index} className="border-b border-slate-100">
+                    <td className="py-2 px-3 font-medium">${flow.strike}</td>
+                    <td className="py-2 px-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        flow.type === 'call' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {flow.type.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="text-right py-2 px-3">{flow.volume.toLocaleString()}</td>
+                    <td className="text-right py-2 px-3">{(flow.impliedVolatility * 100).toFixed(1)}%</td>
+                    <td className={`text-right py-2 px-3 ${flow.delta >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {flow.delta.toFixed(3)}
+                    </td>
+                    <td className="text-right py-2 px-3">{flow.gamma.toFixed(3)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="flex items-center justify-center h-32 bg-slate-50 rounded-lg">
+            <div className="text-center">
+              <Activity className="w-6 h-6 text-slate-400 mx-auto mb-2 animate-pulse" />
+              <p className="text-slate-500">Waiting for options flow data...</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

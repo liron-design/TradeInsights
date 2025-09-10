@@ -72,6 +72,8 @@ export const AdvancedChartView: React.FC<AdvancedChartViewProps> = ({
     (priceChange / data[data.length - 2].price) * 100 : 0;
 
   const renderChart = () => {
+    if (data.length === 0) return null;
+
     switch (chartType) {
       case 'area':
         return (
@@ -321,7 +323,7 @@ export const AdvancedChartView: React.FC<AdvancedChartViewProps> = ({
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Activity className="w-8 h-8 text-slate-400 mx-auto mb-2 animate-pulse" />
-            <p className="text-slate-500">Connecting to live data feed...</p>
+            <p className="text-slate-500">Connecting to live data feed for {symbol}...</p>
           </div>
         </div>
       )}

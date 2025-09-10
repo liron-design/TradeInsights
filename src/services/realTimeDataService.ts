@@ -30,12 +30,9 @@ export interface OptionsFlow {
 }
 
 class RealTimeDataService {
-  private ws: WebSocket | null = null;
   private subscribers = new Map<string, Set<(data: any) => void>>();
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
   private isConnected = false;
+  private dataGenerators = new Map<string, NodeJS.Timeout>();
 
   constructor() {
     this.connect();
@@ -43,54 +40,53 @@ class RealTimeDataService {
 
   private connect() {
     try {
-      // In production, this would connect to a real WebSocket feed
-      // For demo, we'll simulate WebSocket behavior
+      // Simulate WebSocket connection for demo purposes
       this.simulateWebSocketConnection();
     } catch (error) {
       console.error('WebSocket connection failed:', error);
-      this.handleReconnect();
     }
   }
 
   private simulateWebSocketConnection() {
     // Simulate WebSocket connection for demo purposes
     this.isConnected = true;
-    this.reconnectAttempts = 0;
     
-    // Simulate real-time data updates every 100ms
-    setInterval(() => {
-      this.generateRealTimeData();
-    }, 100);
+    // Start data generation for each symbol
+    const symbols = ['SPY', 'NVDA', 'TSLA', 'AAPL', 'BTC-USD', 'ETH-USD'];
+    
+    symbols.forEach(symbol => {
+      const interval = setInterval(() => {
+        this.generateRealTimeData(symbol);
+      }, 1000 + Math.random() * 2000); // Random intervals between 1-3 seconds
+      
+      this.dataGenerators.set(symbol, interval);
+    });
 
-    // Simulate options flow data every 5 seconds
+    // Generate options flow data every 5 seconds
     setInterval(() => {
       this.generateOptionsFlow();
     }, 5000);
   }
 
-  private generateRealTimeData() {
-    const symbols = ['SPY', 'NVDA', 'TSLA', 'AAPL', 'BTC-USD', 'ETH-USD'];
+  private generateRealTimeData(symbol: string) {
+    const basePrice = this.getBasePrice(symbol);
+    const volatility = this.getVolatility(symbol);
     
-    symbols.forEach(symbol => {
-      const basePrice = this.getBasePrice(symbol);
-      const volatility = this.getVolatility(symbol);
-      
-      const price = basePrice + (Math.random() - 0.5) * volatility * basePrice;
-      const volume = Math.floor(Math.random() * 1000000);
-      const spread = price * 0.001; // 0.1% spread
-      
-      const data: RealTimeDataPoint = {
-        symbol,
-        price: Number(price.toFixed(2)),
-        volume,
-        timestamp: Date.now(),
-        bid: Number((price - spread/2).toFixed(2)),
-        ask: Number((price + spread/2).toFixed(2)),
-        spread: Number(spread.toFixed(4))
-      };
+    const price = basePrice + (Math.random() - 0.5) * volatility * basePrice;
+    const volume = Math.floor(Math.random() * 1000000);
+    const spread = price * 0.001; // 0.1% spread
+    
+    const data: RealTimeDataPoint = {
+      symbol,
+      price: Number(price.toFixed(2)),
+      volume,
+      timestamp: Date.now(),
+      bid: Number((price - spread/2).toFixed(2)),
+      ask: Number((price + spread/2).toFixed(2)),
+      spread: Number(spread.toFixed(4))
+    };
 
-      this.notifySubscribers(`realtime:${symbol}`, data);
-    });
+    this.notifySubscribers(`realtime:${symbol}`, data);
   }
 
   private generateOptionsFlow() {
@@ -154,20 +150,16 @@ class RealTimeDataService {
     return dates[Math.floor(Math.random() * dates.length)];
   }
 
-  private handleReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      setTimeout(() => {
-        console.log(`Reconnection attempt ${this.reconnectAttempts}`);
-        this.connect();
-      }, this.reconnectDelay * this.reconnectAttempts);
-    }
-  }
-
   private notifySubscribers(channel: string, data: any) {
     const channelSubscribers = this.subscribers.get(channel);
     if (channelSubscribers) {
-      channelSubscribers.forEach(callback => callback(data));
+      channelSubscribers.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error('Error in subscriber callback:', error);
+        }
+      });
     }
   }
 
@@ -195,10 +187,8 @@ class RealTimeDataService {
   }
 
   disconnect() {
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
+    this.dataGenerators.forEach(interval => clearInterval(interval));
+    this.dataGenerators.clear();
     this.isConnected = false;
   }
 }
