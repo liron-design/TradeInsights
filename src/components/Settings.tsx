@@ -8,18 +8,18 @@ export const Settings: React.FC = () => {
   const [settings, setSettings] = useState<UserSettings>(loadSettings());
   const [hasChanges, setHasChanges] = useState(false);
 
-  const handleToggle = (section: string, key: string) => {
+  const handleToggle = (section: keyof UserSettings, key: string) => {
     setHasChanges(true);
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof typeof prev],
-        [key]: !prev[section as keyof typeof prev][key as keyof typeof prev[typeof section]]
+        ...prev[section],
+        [key]: !prev[section][key as keyof typeof prev[typeof section]]
       }
     }));
   };
 
-  const handleInputChange = (section: string, key: string, value: string) => {
+  const handleInputChange = (section: keyof UserSettings, key: string, value: string) => {
     let validatedValue = value;
     
     // Validate inputs
@@ -36,7 +36,7 @@ export const Settings: React.FC = () => {
     setSettings(prev => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof typeof prev],
+        ...prev[section],
         [key]: validatedValue
       }
     }));
@@ -61,7 +61,7 @@ export const Settings: React.FC = () => {
   };
 
   const handleReset = () => {
-    const defaultSettings = {
+    const defaultSettings: UserSettings = {
       notifications: {
         preMarket: true,
         preClose: true,
@@ -194,36 +194,6 @@ export const Settings: React.FC = () => {
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
-
-            <div className="border-t border-slate-100 pt-4">
-              <h4 className="font-medium text-slate-900 mb-3">Delivery Methods</h4>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Email Notifications</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.notifications.email}
-                      onChange={() => handleToggle('notifications', 'email')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Push Notifications</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.notifications.push}
-                      onChange={() => handleToggle('notifications', 'push')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -260,37 +230,6 @@ export const Settings: React.FC = () => {
               />
               <p className="text-xs text-slate-500 mt-1">Comma-separated list of symbols for deeper analysis</p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Time Horizon</label>
-              <select
-                value={settings.reporting.timeHorizon}
-                onChange={(e) => handleInputChange('reporting', 'timeHorizon', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Intraday">Intraday Focus</option>
-                <option value="Short-term">Short-term (1-7 days)</option>
-                <option value="Medium-term">Medium-term (1-4 weeks)</option>
-                <option value="Long-term">Long-term (1-12 months)</option>
-                <option value="Mixed">Mixed Horizons</option>
-              </select>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-slate-900">Weekend Reports</h4>
-                <p className="text-sm text-slate-600">Generate reports on non-trading days</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.reporting.weekendReports}
-                  onChange={() => handleToggle('reporting', 'weekendReports')}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
           </div>
         </div>
 
@@ -313,7 +252,6 @@ export const Settings: React.FC = () => {
                   checked={settings.preferences.voiceMode}
                   onChange={(e) => {
                     handleToggle('preferences', 'voiceMode');
-                    // Enable voice commands in parent component
                     window.dispatchEvent(new CustomEvent('voiceToggle', { detail: e.target.checked }));
                   }}
                   className="sr-only peer"
@@ -332,22 +270,6 @@ export const Settings: React.FC = () => {
                   type="checkbox"
                   checked={settings.preferences.autoRefresh}
                   onChange={() => handleToggle('preferences', 'autoRefresh')}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-slate-900">Compact View</h4>
-                <p className="text-sm text-slate-600">Dense layout for mobile devices</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.preferences.compactView}
-                  onChange={() => handleToggle('preferences', 'compactView')}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -374,16 +296,6 @@ export const Settings: React.FC = () => {
                   <p className="text-sm text-slate-600">Download your reports and settings</p>
                 </div>
                 <Download className="w-5 h-5 text-slate-400" />
-              </div>
-            </button>
-
-            <button className="w-full text-left p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-slate-900">Privacy Settings</h4>
-                  <p className="text-sm text-slate-600">Manage data collection and usage</p>
-                </div>
-                <Shield className="w-5 h-5 text-slate-400" />
               </div>
             </button>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import { useMarketData } from '../hooks/useMarketData';
 import { format } from 'date-fns';
 
@@ -20,7 +20,7 @@ export const MarketOverview: React.FC = () => {
             disabled={isLoading}
             className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50"
           >
-            Refresh
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>

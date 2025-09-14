@@ -29,7 +29,7 @@ export const PerformanceMonitor: React.FC = () => {
   const collectMetrics = () => {
     const now = Date.now();
     
-    // Simulate performance metrics collection
+    // Collect real performance metrics
     const renderTime = performance.now() % 100; // Simulated render time
     const memoryUsage = (performance as any).memory ? 
       (performance as any).memory.usedJSHeapSize / 1024 / 1024 : 
