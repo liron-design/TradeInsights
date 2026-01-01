@@ -5,7 +5,7 @@ export class AccessibilityUtils {
 
   // Initialize accessibility features
   static init(): void {
-    this.createLiveRegion();
+    this.announceRegion = this.createLiveRegion('accessibility-announcer', 'polite');
     this.setupKeyboardNavigation();
     this.setupFocusManagement();
     this.addSkipLinks();
@@ -82,15 +82,6 @@ export class AccessibilityUtils {
         }
       }, 1000);
     }
-  }
-
-  private static createLiveRegion(): void {
-    this.announceRegion = document.createElement('div');
-    this.announceRegion.id = 'accessibility-announcer';
-    this.announceRegion.setAttribute('aria-live', 'polite');
-    this.announceRegion.setAttribute('aria-atomic', 'true');
-    this.announceRegion.className = 'sr-only';
-    document.body.appendChild(this.announceRegion);
   }
 
   // Color contrast validation with WCAG standards
